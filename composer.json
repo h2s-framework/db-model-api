@@ -1,5 +1,5 @@
 {
-  "name": "siarkowodor/h2s-db-model-api",
+  "name": "h2sf/db-model-api",
   "description": "description",
   "minimum-stability": "stable",
   "license": "proprietary",
@@ -12,9 +12,9 @@
     }
   ],
   "require": {
-    "siarkowodor/h2s-dependency-manager": "*",
-    "siarkowodor/file-abstraction": "*",
-    "siarkowodor/sql-creator": "*",
+    "h2sf/dependency-manager": "*",
+    "h2sf/file-abstraction": "*",
+    "h2sf/sql-creator": "*",
     "butschster/dbml-parser": "^0.2"
   },
   "autoload": {
