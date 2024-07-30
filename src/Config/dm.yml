@@ -1,0 +1,85 @@
+id: Siarko.DbModelApi.default
+types:
+  # Interface preferences
+  \Siarko\DbModelApi\Storage\StorageQueryResultInterface: \Siarko\DbModelApi\Storage\PDOQueryResult
+  \Siarko\DbModelApi\Storage\StorageContextInterface: \Siarko\DbModelApi\Storage\PDOStorageContext
+  \Siarko\DbModelApi\StorageInterface: \Siarko\DbModelApi\Storage
+  \Siarko\DbModelApi\Schema\BuilderInterface: \Siarko\DbModelApi\Schema\LiveDbBuilder
+  \Siarko\DbModelApi\Schema\StorageInterface: \Siarko\DbModelApi\Schema\Storage
+  \Siarko\DbModelApi\Schema\Creator\Comparator\SchemaComparatorInterface: \Siarko\DbModelApi\Schema\Creator\Comparator\DefaultSchemaComparator
+  \Siarko\DbModelApi\Storage\StorageCredentialProviderInterface: \Siarko\DbModelApi\Storage\StorageCredentialProvider\KeystoreCredentialProvider
+  # Virtual types
+  informationSchemaContext: !new \Siarko\DbModelApi\Storage\StorageContextInterface
+  V\Siarko\DbModelApi\Commands\DirectoryProvider: !new \Siarko\Paths\Provider\AbsolutePathProvider
+  V\Siarko\DbModelApi\Dbml\PoolLookup: !new \Siarko\Files\Lookup\PoolLookup
+  V\Siarko\DbModelApi\Dbml\ConfigProvider: !new \Siarko\ConfigFiles\Provider\ScopedProvider
+    #Cache
+  V\Siarko\DbModelApi\Cache\LiveSchema: !new \Siarko\CacheFiles\Api\CacheSetInterface
+  V\Siarko\DbModelApi\Cache\LiveSchema\DirectoryProvider: !new \Siarko\Paths\Provider\ProjectPathProvider
+arguments:
+  # Cache configuration
+  V\Siarko\DbModelApi\Cache\LiveSchema\DirectoryProvider:
+    path: generated/cache/db_schema
+  V\Siarko\DbModelApi\Cache\LiveSchema:
+    cacheDirectory: V\Siarko\DbModelApi\Cache\LiveSchema\DirectoryProvider
+  # Add cache to the cache manager
+  \Siarko\CacheFiles\Manager:
+    caches:
+      db_schema: V\Siarko\DbModelApi\Cache\LiveSchema
+
+  # Set path for CLI commands
+  V\Siarko\DbModelApi\Commands\DirectoryProvider:
+    path: __DIR__/../Commands
+  \Siarko\Paths\Provider\Pool\PathProviderPool:
+    providers:
+      command:
+        - V\Siarko\DbModelApi\Commands\DirectoryProvider
+
+  V\Siarko\DbModelApi\Dbml\PoolLookup:
+    fileType: !const \Siarko\DbModelApi\Schema\Creator\SchemaFile\FileSchemaBuilder::FILE_NAME
+  V\Siarko\DbModelApi\Dbml\ConfigProvider:
+    fileLookup: V\Siarko\DbModelApi\Dbml\PoolLookup
+  # Inject File Schema Builder to commands
+  \Siarko\DbModelApi\Commands\ValidateSchema:
+    fileDbSchema: \Siarko\DbModelApi\Schema\Creator\SchemaFile\FileSchemaBuilder
+  \Siarko\DbModelApi\Commands\UpdateSchema:
+    fileDbSchema: \Siarko\DbModelApi\Schema\Creator\SchemaFile\FileSchemaBuilder
+  # Add default config parser for dbml files
+  \Siarko\ConfigFiles\Provider\ConfigFileExtensionProvider:
+    types:
+      db_schema: [dbml]
+  \Siarko\DependencyManager\Paths\Files\ParserManager:
+    parsers:
+      dbml: \Siarko\DbModelApi\Schema\Creator\SchemaFile\DbmlFileParser
+  \Siarko\Files\Parse\ParserManager:
+    parsers:
+      default:
+        dbml:
+          mimeTypes: [text/dbml]
+          parser: !type:object \Siarko\DbModelApi\Schema\Creator\SchemaFile\DbmlFileParser
+  # Modules configuration
+  \Siarko\Modules\Paths\ModulePathsProvider:
+    pathTypes:
+      db_schema: Config
+  # Model factory generator
+  \Siarko\DependencyManager\Generator\CodeGenerator:
+    generators:
+      - \Siarko\DbModelApi\Generator\CustomizedModelFactoryGenerator
+  # Storage configuration - Live schema cache
+  \Siarko\DbModelApi\Schema\Storage:
+    schemaCache: V\Siarko\DbModelApi\Cache\LiveSchema
+
+
+  \Siarko\DbModelApi\Schema\LiveDbBuilder:
+    informationSchema: informationSchemaContext
+    columnParser: \Siarko\SqlCreator\DatabaseElement\AssocParser\Column\InformationSchemaParser
+    columnKeyParser: \Siarko\SqlCreator\DatabaseElement\AssocParser\Column\Key\InformationSchemaParser
+  \Siarko\DbModelApi\Schema\Creator\SchemaFile\FileSchemaBuilder:
+    configProvider: V\Siarko\DbModelApi\Dbml\ConfigProvider
+    columnParser: \Siarko\DbModelApi\Schema\Creator\SchemaFile\AssocParser\Column\DbSchemaFileParser
+    columnKeyParser: \Siarko\DbModelApi\Schema\Creator\SchemaFile\AssocParser\Column\Key\DbSchemaFileParser
+  informationSchemaContext:
+    credentialProvider: \Siarko\DbModelApi\Storage\InformationSchemaCredentialProvider
+  \Siarko\DbModelApi\Storage\PDOQueryResult:
+    resultParsers:
+      - \Siarko\DbModelApi\Storage\ResultParser\SelectResultParser

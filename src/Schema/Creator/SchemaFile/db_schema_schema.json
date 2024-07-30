@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://siarko.pl/schema/h2s/db_schema_schema.json",
+  "title": "Database Schema",
+  "description": "Database Schema description file",
+  "type": "object",
+  "patternProperties": {
+    "^[a-zA-Z0-9-_]+$": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9-_]+$":{
+              "type": "object",
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "oneOf": [
+                    {"pattern": "^decimal\\(\\d+(,\\d+)?\\)$"},
+                    {"pattern": "^dec\\(\\d+(,\\d+)?\\)$"},
+                    {"pattern": "^float\\(\\d+(,\\d+)?\\)$"},
+                    {"pattern": "^double\\(\\d+(,\\d+)?\\)$"},
+                    {"pattern": "^varchar\\(\\d+\\)$"},
+                    {"pattern": "^char(\\(\\d+\\))?$"},
+                    {"pattern": "^blob(\\(\\d+\\))?$"},
+                    {"pattern": "^text(\\(\\d+\\))?$"},
+                    {"pattern": "^int(\\(\\d+\\))?$"},
+                    {"pattern": "^tinyint(\\(\\d+\\))?$"},
+                    {"pattern": "^smallint(\\(\\d+\\))?$"},
+                    {"pattern": "^mediumint(\\(\\d+\\))?$"},
+                    {"pattern": "^bigint(\\(\\d+\\))?$"},
+                    {
+                      "enum": [
+                        "bool", "boolean",
+                        "date", "datetime", "timestamp", "time", "year",
+                        "mediumblob", "mediumtext", "longblob", "longtext", "json"
+                      ]
+                    }
+                  ]
+                },
+                "ai": {"type": "bool"},
+                "nullable": {"type": "bool"},
+                "default": {
+                  "type": ["string","number", "boolean", "null"]
+                }
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "keys": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["primary", "foreign", "index"]
+              },
+              "column": {
+                "type": "string"
+              }
+            },
+            "if": {
+              "properties": {"type": {"const": "foreign"}}
+            },
+            "then": {
+              "properties": {
+                "target": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

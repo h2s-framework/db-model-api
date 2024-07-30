@@ -1,0 +1,25 @@
+{
+  "name": "siarkowodor/h2s-db-model-api",
+  "description": "description",
+  "minimum-stability": "stable",
+  "license": "proprietary",
+  "version": "0.1.0",
+  "type": "library",
+  "authors": [
+    {
+      "name": "H2S",
+      "email": "mateusz@siarko.pl"
+    }
+  ],
+  "require": {
+    "siarkowodor/h2s-dependency-manager": "*",
+    "siarkowodor/file-abstraction": "*",
+    "siarkowodor/sql-creator": "*",
+    "butschster/dbml-parser": "^0.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "Siarko\\DbModelApi\\": "src/"
+    }
+  }
+}
