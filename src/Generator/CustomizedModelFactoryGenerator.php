@@ -2,17 +2,19 @@
 
 namespace Siarko\DbModelApi\Generator;
 
+use Nette\PhpGenerator\ClassType;
 use Nette\PhpGenerator\PhpFile;
 use Siarko\DbModelApi\AbstractModel;
 use Siarko\DbModelApi\Exception\CustomModelGenerationException;
 use Siarko\DbModelApi\Schema\StorageInterfaceProxy;
 use Siarko\DependencyManager\Generator\IGenerator;
+use Siarko\SqlCreator\DatabaseElement\Column;
 use Siarko\Utils\Strings;
 
 class CustomizedModelFactoryGenerator implements IGenerator
 {
 
-    public const CLASS_SUFFIX = 'CustomAbstractModel';
+    public const CLASS_SUFFIX = 'AbstractModel';
 
     /**
      * @param StorageInterfaceProxy $schemaStorageProxy
@@ -66,26 +68,78 @@ class CustomizedModelFactoryGenerator implements IGenerator
             throw new CustomModelGenerationException("Entity table schema for $entityName does not exist");
         }
         $file = new PhpFile();
-        $file->setStrictTypes();
-        $class = $file->addClass($fullClassName);
-        $class->setExtends(AbstractModel::class);
+        $class = $this->createClass($file, $fullClassName);
 
-        $getEntityName = $class->addMethod('getEntityName');
-        $getEntityName->setPublic();
-        $getEntityName->setStatic(true);
-        $getEntityName->setReturnType('string');
-        $getEntityName->setBody("return '$entityName';");
+        $this->createTableNameGetterMethod($class, $entityName);
 
         foreach ($schema->getColumns() as $column) {
-            $type = $column->getType()->getPhpType();
-            $camelCaseName = Strings::snakeCaseToCamelCase($column->getName());
-            $name = ucfirst($camelCaseName);
-            $class->addComment("@method $type get$name()");
-            $class->addComment("@method void set$name($type \$$camelCaseName)");
-
             $class->addConstant(strtoupper($column->getName()), $column->getName())->setPublic();
+
+            $this->createColumnGetter($class, $column);
+            $this->createColumnSetter($class, $column);
         }
 
         return $file;
+    }
+
+    /**
+     * @param PhpFile $file
+     * @param string $className
+     * @return ClassType
+     */
+    private function createClass(PhpFile $file, string $className): ClassType {
+        $class = $file->setStrictTypes()->addClass($className);
+        $class->setExtends(AbstractModel::class);
+        $class->addComment('This class was generated automatically by H2S Framework.');
+        return $class;
+    }
+
+    /**
+     * @param ClassType $class
+     * @param string $tableName
+     * @return void
+     */
+    private function createTableNameGetterMethod(ClassType $class, string $tableName): void {
+        $getEntityName = $class->addMethod('getEntityName');
+        $getEntityName->setPublic();
+        $getEntityName->setStatic();
+        $getEntityName->setReturnType('string');
+        $getEntityName->setBody("return '$tableName';");
+        $getEntityName->addComment('@description Returns the name of the table in the database.');
+        $getEntityName->addComment('@return string');
+    }
+
+    /**
+     * @param ClassType $class
+     * @param Column $column
+     * @return void
+     */
+    private function createColumnGetter(ClassType $class, Column $column): void {
+        $type = $column->getType()->getPhpType();
+        $name = ucfirst(Strings::snakeCaseToCamelCase($column->getName()));
+        $method = $class->addMethod("get$name");
+        $method->setPublic();
+        $method->setReturnType($type);
+        $method->setBody("return \$this->__get(static::".strtoupper($column->getName()).");");
+        $method->addComment('@description Returns '.$column->getName());
+        $method->addComment('@return '.$type);
+    }
+
+    /**
+     * @param ClassType $class
+     * @param Column $column
+     * @return void
+     */
+    private function createColumnSetter(ClassType $class, Column $column): void {
+        $type = $column->getType()->getPhpType();
+        $name = ucfirst(Strings::snakeCaseToCamelCase($column->getName()));
+        $method = $class->addMethod("set$name");
+        $method->setPublic();
+        $method->setReturnType('self');
+        $method->setBody('$this->__set(static::'.strtoupper($column->getName()).', $value); return $this;');
+        $method->addParameter('value')->setType($type);
+        $method->addComment('@description Sets '.$column->getName());
+        $method->addComment('@param '.$type.' $value');
+        $method->addComment('@return self');
     }
 }

@@ -48,9 +48,6 @@ arguments:
   \Siarko\ConfigFiles\Provider\ConfigFileExtensionProvider:
     types:
       db_schema: [dbml]
-  \Siarko\DependencyManager\Paths\Files\ParserManager:
-    parsers:
-      dbml: \Siarko\DbModelApi\Schema\Creator\SchemaFile\DbmlFileParser
   \Siarko\Files\Parse\ParserManager:
     parsers:
       default:
