@@ -3,7 +3,6 @@
   "description": "description",
   "minimum-stability": "stable",
   "license": "proprietary",
-  "version": "0.2",
   "type": "library",
   "authors": [
     {
@@ -12,9 +11,9 @@
     }
   ],
   "require": {
-    "h2sf/dependency-manager": "*",
-    "h2sf/file-abstraction": "*",
-    "h2sf/sql-creator": "*",
+    "h2sf/dependency-manager": "^0.3",
+    "h2sf/file-abstraction": "^0.3",
+    "h2sf/sql-creator": "^0.3",
     "butschster/dbml-parser": "^0.2"
   },
   "autoload": {
